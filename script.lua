@@ -1,5 +1,5 @@
 -- (Creator = Thanh Phuc)
--- 💟 Thanh Phuc - Chroma Boombox Cầu Vồng Đeo Chéo + Nháy Theo Nhạc (Visualizer Mặt Lưng) 💟
+-- 💟 Thanh Phuc - Chroma Boombox Cầu Vồng Đeo Chéo + Nháy Theo Nhạc (Fix Lỗi Hiện Sóng Mặt Sau) 💟
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
@@ -65,16 +65,16 @@ local function CreateFakeBoombox()
     strapWeld.C0 = CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(10), math.rad(15), math.rad(-35))
     strapWeld.Parent = StrapPart
     
-    -- TẠO CÁC THANH SÓNG NHẠC PHẲNG ỐP NGOÀI BỀ MẶT LƯNG
+    -- TẠO CÁC THANH SÓNG NHẠC PHẲNG ỐP NGOÀI BỀ MẶT LƯNG (ĐÃ ĐƯỢC ĐẨY RA NGOÀI KHÔNG GIAN)
     local barCount = 5 -- Số lượng thanh sóng nhạc xếp đều theo bề ngang
-    local barWidth = 1.5 / barCount -- Thu hẹp lại một chút để nằm gọn bên trong mặt lưng loa
+    local barWidth = 1.5 / barCount -- Thu hẹp lại một chút để nằm gọn bên trong mặt sau loa
     
     for i = 1, barCount do
         local bar = Instance.new("Part")
         bar.Name = "VisualizerBar" .. i
         bar.Material = Enum.Material.Neon
-        -- Độ dày siêu mỏng (0.01) để nó dính sát như một decal/màn hình LED ngoài mặt lưng
-        bar.Size = Vector3.new(barWidth - 0.04, 0.1, 0.01) 
+        -- Tăng độ dày lên 0.08 để tạo khối nổi bật trên mặt lưng dễ quan sát
+        bar.Size = Vector3.new(barWidth - 0.04, 0.1, 0.08) 
         bar.CanCollide = false
         bar.Massless = true
         bar.Parent = character
@@ -83,9 +83,9 @@ local function CreateFakeBoombox()
         barWeld.Part0 = part
         barWeld.Part1 = bar
         
-        -- Căn vị trí: Nằm ngay ngoài bề mặt lưng khối (Z = 0.21), nháy dọc theo trục Y
+        -- ĐỔI THÀNH Z = -0.22: Đẩy thanh sóng ra hẳn mặt ngoài của lưng loa, không lo bị chìm hay khuất nữa
         local xOffset = -0.75 + (i - 0.5) * barWidth
-        barWeld.C0 = CFrame.new(xOffset, 0, 0.21) 
+        barWeld.C0 = CFrame.new(xOffset, 0, -0.22) 
         barWeld.Parent = bar
         
         table.insert(VisualizerBars, {Part = bar, Weld = barWeld, Index = i})
@@ -117,19 +117,19 @@ local function CreateFakeBoombox()
             StrapPart.Color = Color3.fromHSV(strapHue / 360, 1, 1)
         end
         
-        -- Cập nhật các thanh sóng nháy dọc cực kỳ dễ nhìn và cân bằng
+        -- Cập nhật các thanh sóng nháy dọc bên ngoài mặt sau cực kỳ nét
         for _, item in pairs(VisualizerBars) do
             if item.Part and item.Part.Parent then
-                -- Tạo nhịp sóng mượt, vừa vặn cân bằng không vượt quá chiều cao loa (max 1.2)
+                -- Nhịp sóng mượt, vừa vặn cân bằng với chiều cao loa (max tầm 0.95 để không tràn)
                 local waveFactor = math.sin(tick() * 14 + item.Index) * 0.15
-                local targetHeight = math.clamp((normLoudness * 0.8) + waveFactor, 0.1, 0.9) 
+                local targetHeight = math.clamp((normLoudness * 0.8) + waveFactor, 0.1, 0.95) 
                 
-                -- Thay đổi chiều cao (Trục Y) co giãn ngay trên bề mặt phẳng của lưng loa
+                -- Thay đổi chiều cao co giãn dọc theo nhạc
                 item.Part.Size = Vector3.new(item.Part.Size.X, targetHeight, item.Part.Size.Z)
                 
-                -- Giữ nguyên vị trí tâm cố định ở giữa mặt sau để sóng co giãn đều từ trung tâm ra
+                -- Giữ nguyên vị trí cố định trên mặt phẳng ngoài (Z = -0.22), co giãn cân bằng từ tâm
                 local xOffset = -0.75 + (item.Index - 0.5) * barWidth
-                item.Weld.C0 = CFrame.new(xOffset, 0, 0.21)
+                item.Weld.C0 = CFrame.new(xOffset, 0, -0.22)
                 
                 -- Đổi màu dải cầu vồng lệch nhịp từng thanh tạo hiệu ứng EQ LED chuyên nghiệp
                 local barHue = (hue + (item.Index * 20)) % 360
@@ -220,7 +220,7 @@ PlayBtn.MouseButton1Click:Connect(function()
         LocalSound:Play()
         
         CreateFakeBoombox() 
-        print("Thanh Phuc đã bật nhạc + Hiện sóng LED mặt lưng cực nét!")
+        print("Thanh Phuc đã bật nhạc + Hiện sóng LED mặt lưng lộ ra ngoài cực nét!")
     else
         InputBox.Text = ""
         InputBox.PlaceholderText = "ID không hợp lệ!"
